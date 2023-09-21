@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cytao.mapper.SellerMapper">
+    <resultMap id="BaseResultMap" type="com.cytao.entity.Seller">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="tel" jdbcType="VARCHAR" property="tel"/>
+        <result column="type" jdbcType="VARCHAR" property="type"/>
+        <result column="district" jdbcType="VARCHAR" property="district"/>
+        <result column="address" jdbcType="VARCHAR" property="address"/>
+        <result column="per" jdbcType="INTEGER" property="per"/>
+        <result column="del_flg" jdbcType="CHAR" property="delFlg"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="comments" jdbcType="VARCHAR" property="comments"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        id
+        , `name`, tel, `type`, district, address, per, del_flg, create_time, update_time,
+    comments
+    </sql>
+    <sql id="Base_ComSeller_list">
+        id,`name`,comments
+    </sql>
+    <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_seller
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+    <select id="queryShop" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"></include>
+        from t_seller
+        <where>
+            del_flg='0'
+            <if test="shop.id!=null and shop.id>0">
+                and id like concat('%',#{shop.id},'%')
+            </if>
+            <if test="shop.name!=null and shop.name.length()>0">
+                and name like concat('%',#{shop.name},'%')
+            </if>
+            <if test="shop.tel!=null and shop.tel.length()>0">
+                and tel=#{shop.tel}
+            </if>
+            <if test="shop.type!=null and shop.type.length()>0">
+                and type=#{shop.type}
+            </if>
+            <if test="shop.district!=null and shop.district.length()>0">
+                and district=#{shop.district}
+            </if>
+            <if test="shop.address!=null and shop.address.length()>0">
+                and address like concat('%',#{shop.address},'%')
+            </if>
+            <if test="shop.startper!=null and shop.endper!=null">
+                and per between #{shop.startper} and #{shop.endper}
+            </if>
+
+        </where>
+    </select>
+    <select id="getdistrict" resultType="com.cytao.pojo.District">
+        select distinct district from t_seller;
+    </select>
+    <select id="selectdistrcitShopCount" resultType="com.cytao.pojo.District">
+        select district,count(*) as shopcouth from t_seller
+        <where>
+            <foreach collection="array" index="index" nullable="true" open="district in (" separator="," close=")" item="item">
+                #{item}
+            </foreach>
+        </where>
+        group by district ;
+    </select>
+    <select id="selectComSeller" resultType="com.cytao.entity.Recomseller">
+        select <include refid="Base_ComSeller_list"></include>
+        from t_recomseller
+    </select>
+    <select id="selectSellerByPrimaryKey" resultType="com.cytao.entity.Recomseller">
+        select <include refid="Base_ComSeller_list"></include> from t_seller
+        <where>
+            <foreach collection="array" item="item" open="id in (" separator="," close=")" nullable="true" index="index">
+                #{item}
+            </foreach>
+        </where>
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        delete
+        from t_seller
+        where id = #{id,jdbcType=VARCHAR}
+    </delete>
+    <delete id="delAllRecomseller">
+        delete from t_recomseller
+    </delete>
+    <update id="delseller">
+        update t_seller set del_flg='1' where id=#{id}
+    </update>
+    <update id="delsellers">
+        update t_seller set del_flg='1'
+        <where>
+            <foreach collection="id" item="item" open="id in (" separator="," close=")" nullable="true" index="index">
+                #{item}
+            </foreach>
+        </where>
+    </update>
+    <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.cytao.entity.Seller" useGeneratedKeys="true">
+        insert into t_seller (`name`, tel, `type`,
+                              district, address, per,
+                              del_flg, create_time, update_time,
+                              comments)
+        values (#{name,jdbcType=VARCHAR}, #{tel,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR},
+                #{district,jdbcType=VARCHAR}, #{address,jdbcType=VARCHAR}, #{per,jdbcType=INTEGER},
+                #{delFlg,jdbcType=CHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
+                #{comments,jdbcType=VARCHAR})
+    </insert>
+    <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.cytao.entity.Seller"
+            useGeneratedKeys="true">
+        insert into t_seller
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="name != null">
+                `name`,
+            </if>
+            <if test="tel != null">
+                tel,
+            </if>
+            <if test="type != null">
+                `type`,
+            </if>
+            <if test="district != null">
+                district,
+            </if>
+            <if test="address != null">
+                address,
+            </if>
+            <if test="per != null">
+                per,
+            </if>
+            <if test="delFlg != null">
+                del_flg,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+            <if test="comments != null">
+                comments,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=VARCHAR},
+            </if>
+            <if test="name != null">
+                #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="tel != null">
+                #{tel,jdbcType=VARCHAR},
+            </if>
+            <if test="type != null">
+                #{type,jdbcType=VARCHAR},
+            </if>
+            <if test="district != null">
+                #{district,jdbcType=VARCHAR},
+            </if>
+            <if test="address != null">
+                #{address,jdbcType=VARCHAR},
+            </if>
+            <if test="per != null">
+                #{per,jdbcType=INTEGER},
+            </if>
+            <if test="delFlg != null">
+                #{delFlg,jdbcType=CHAR},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="comments != null">
+                #{comments,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <insert id="insertrecomseller"  keyColumn="id" keyProperty="id" useGeneratedKeys="true">
+        insert into t_recomseller (id,name,comments) values
+        <foreach collection="list" item="item" index="index" nullable="true"  separator=",">
+            (#{item.id},#{item.name},#{item.comments})
+        </foreach>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="com.cytao.entity.Seller">
+        update t_seller
+        <set>
+            <if test="name != null">
+                `name` = #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="tel != null">
+                tel = #{tel,jdbcType=VARCHAR},
+            </if>
+            <if test="type != null">
+                `type` = #{type,jdbcType=VARCHAR},
+            </if>
+            <if test="district != null">
+                district = #{district,jdbcType=VARCHAR},
+            </if>
+            <if test="address != null">
+                address = #{address,jdbcType=VARCHAR},
+            </if>
+            <if test="per != null">
+                per = #{per,jdbcType=INTEGER},
+            </if>
+            <if test="delFlg != null">
+                del_flg = #{delFlg,jdbcType=CHAR},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="comments != null">
+                comments = #{comments,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.cytao.entity.Seller">
+        update t_seller
+        set `name`      = #{name,jdbcType=VARCHAR},
+            tel         = #{tel,jdbcType=VARCHAR},
+            `type`      = #{type,jdbcType=VARCHAR},
+            district    = #{district,jdbcType=VARCHAR},
+            address     = #{address,jdbcType=VARCHAR},
+            per         = #{per,jdbcType=INTEGER},
+            del_flg     = #{delFlg,jdbcType=CHAR},
+            create_time = #{createTime,jdbcType=TIMESTAMP},
+            update_time = #{updateTime,jdbcType=TIMESTAMP},
+            comments    = #{comments,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+</mapper>
